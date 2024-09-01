@@ -1,0 +1,6 @@
+Nombres: Eduardo Emmanuel
+Apellidos: Santiago Flores
+Telefono: 9611099833
+Estatura: 1.70
+Edad: 19años
+Genero: Hombre
