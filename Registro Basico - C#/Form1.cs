@@ -6,14 +6,17 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml.Linq;
+using MySql.Data.MySqlClient;
 
 namespace Registro_Basico___C_
 {
     public partial class Form1 : Form
     {
+        string conexionSQL = "server=localhost; port=3306; database=registro; uid=root; pwd=";
+
         public Form1()
         {
             InitializeComponent();
@@ -22,6 +25,31 @@ namespace Registro_Basico___C_
             textBox3.Leave += Validar_Edad;
             textBox4.Leave += Validar_Estatura;
             textBox5.Leave += Validar_Telefono;
+        }
+
+        private void InsertarRegistro(string nombres, string apellidos, long telefono, decimal estatura, int edad, string genero)
+        {
+            using (MySqlConnection connection = new MySqlConnection(conexionSQL))
+            {
+                connection.Open();
+
+                string insertQuery = "insert into datos (firstName, lastName, telephone, height, age, gender)" +
+                     "values (@firstName, @lastName, @telephone, @height, @age, @gender)";
+
+                using (MySqlCommand command = new MySqlCommand(insertQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@firstName", nombres);
+                    command.Parameters.AddWithValue("@lastName", apellidos);
+                    command.Parameters.AddWithValue("@telephone", telefono);
+                    command.Parameters.AddWithValue("@height", estatura);
+                    command.Parameters.AddWithValue("@age", edad);
+                    command.Parameters.AddWithValue("@gender", genero);
+
+                    command.ExecuteNonQuery();
+                }
+
+                connection.Close();
+            }
         }
 
         private bool Valid_Int(string str)
@@ -36,7 +64,7 @@ namespace Registro_Basico___C_
         }
         private bool Valid_Text(string str)
         {
-            return str.All(char.IsLetter);
+            return str.All(c => char.IsLetter(c) || char.IsWhiteSpace(c));
         }
         private bool Valid_Digit(string str)
         {
@@ -121,9 +149,18 @@ namespace Registro_Basico___C_
             string rutaArchivos = "C:\\Users\\Emma\\Documents\\Programación Avanzada\\Registro Basico - C#\\Datos_C#.txt";
             bool archivoExiste = File.Exists(rutaArchivos);
 
-            using (StreamWriter writer = new StreamWriter(rutaArchivos, true))
+           
+            using (StreamWriter wrt = new StreamWriter(rutaArchivos))
             {
-                writer.WriteLine(datos);
+                if (archivoExiste)
+                {
+                    wrt.WriteLine();
+                    InsertarRegistro(nombres, apellidos, telefono, estatura, edad, genero);
+                }
+                else
+                {
+                    wrt.WriteLine(datos);
+                }
             }
             MessageBox.Show("Datos guardados: \n\n" + datos, "Informacion", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
